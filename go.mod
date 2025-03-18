@@ -1,4 +1,4 @@
-module github.com/TamVanum/goncrypt
+module github.com/tamvanum/goncrypt
 
 go 1.24.1
 
