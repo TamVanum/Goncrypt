@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tamVanum/goncrypt/internal/encryption/dto"
 	"github.com/tamVanum/goncrypt/internal/encryption/service"
 )
 
@@ -15,12 +17,8 @@ func NewEncryptionHandler(svc *service.EncryptionService) *EncryptionHandler {
 	return &EncryptionHandler{svc}
 }
 
-type EncryptRequest struct {
-	Text string `json:"text" binding:"required"`
-}
-
 func (h *EncryptionHandler) Text(c *gin.Context) {
-	var req EncryptRequest
+	var req dto.EncryptTextRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Text field required"})
 		return
@@ -28,10 +26,27 @@ func (h *EncryptionHandler) Text(c *gin.Context) {
 
 	encrypted, err := h.svc.EncryptText(req.Text)
 	if err != nil {
+		log.Printf("encryption error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption Failed"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"encrypted": encrypted})
+	c.JSON(http.StatusOK, gin.H{"encrypted": dto.NewEncryptTextResponse(encrypted)})
+}
 
+func (h *EncryptionHandler) Number(c *gin.Context) {
+	var req dto.EncryptNumberRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Number Encryption Failed"})
+		return
+	}
+
+	encrypted, err := h.svc.EncryptNumber(req.Number)
+
+	if err != nil {
+		log.Printf("encryption error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption Failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"encrypted": encrypted})
 }
